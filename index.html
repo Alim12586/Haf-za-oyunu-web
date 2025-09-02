@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <title>Hafıza Oyunu</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      background: #f3f3f3;
+    }
+    .board {
+      display: grid;
+      grid-template-columns: repeat(4, 80px);
+      grid-gap: 10px;
+      justify-content: center;
+      margin-top: 30px;
+    }
+    .card {
+      width: 80px;
+      height: 80px;
+      background: #4285f4;
+      color: #fff;
+      font-size: 2em;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      border-radius: 8px;
+      user-select: none;
+      transition: background 0.3s;
+    }
+    .card.flipped, .card.matched {
+      background: #34a853;
+      color: #222;
+      cursor: default;
+    }
+    .card.matched {
+      background: #aaa;
+      color: #fff;
+    }
+    #score {
+      margin-top: 20px;
+      font-size: 1.2em;
+    }
+    #reset {
+      margin-top: 10px;
+      padding: 6px 14px;
+      font-size: 1em;
+      cursor: pointer;
+      border-radius: 5px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Hafıza Oyunu</h1>
+  <div id="score">Hamle: 0</div>
+  <button id="reset">Yeniden Başlat</button>
+  <div class="board" id="board"></div>
+
+  <script>
+    const symbols = ['🍎','🍌','🍇','🍉','🍒','🍓','🍍','🥝'];
+    let deck = [];
+    let flippedCards = [];
+    let matchedCount = 0;
+    let moves = 0;
+
+    function shuffle(array) {
+      for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+      }
+      return array;
+    }
+
+    function setupBoard() {
+      deck = shuffle([...symbols, ...symbols]);
+      const board = document.getElementById('board');
+      board.innerHTML = '';
+      deck.forEach((symbol, idx) => {
+        const card = document.createElement('div');
+        card.className = 'card';
+        card.dataset.index = idx;
+        card.dataset.symbol = symbol;
+        card.innerText = '';
+        card.addEventListener('click', handleCardClick);
+        board.appendChild(card);
+      });
+      moves = 0;
+      matchedCount = 0;
+      flippedCards = [];
+      document.getElementById('score').innerText = `Hamle: ${moves}`;
+    }
+
+    function handleCardClick(e) {
+      const card = e.target;
+      if (card.classList.contains('flipped') || card.classList.contains('matched')) return;
+      if (flippedCards.length === 2) return;
+
+      card.classList.add('flipped');
+      card.innerText = card.dataset.symbol;
+      flippedCards.push(card);
+
+      if (flippedCards.length === 2) {
+        moves++;
+        document.getElementById('score').innerText = `Hamle: ${moves}`;
+        if (flippedCards[0].dataset.symbol === flippedCards[1].dataset.symbol) {
+          flippedCards.forEach(c => {
+            c.classList.add('matched');
+            c.classList.remove('flipped');
+          });
+          matchedCount += 2;
+          flippedCards = [];
+          if (matchedCount === deck.length) {
+            setTimeout(() => {
+              alert(`Tebrikler! Oyunu ${moves} hamlede bitirdiniz.`);
+            }, 300);
+          }
+        } else {
+          setTimeout(() => {
+            flippedCards.forEach(c => {
+              c.classList.remove('flipped');
+              c.innerText = '';
+            });
+            flippedCards = [];
+          }, 800);
+        }
+      }
+    }
+
+    document.getElementById('reset').onclick = setupBoard;
+
+    setupBoard();
+  </script>
+</body>
+</html>
